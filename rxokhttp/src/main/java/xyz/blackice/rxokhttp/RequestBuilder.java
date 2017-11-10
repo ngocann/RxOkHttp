@@ -10,12 +10,17 @@ public class RequestBuilder {
     private int timeout;
     private Class clazz;
 
+    public RequestBuilder(){
+    }
+
     public String getUrl() {
         return url;
     }
 
-    public void setUrl(String url) {
+    public RequestBuilder setUrl(String url) {
         this.url = url;
+        return this;
+
     }
 
     public int getTimeout() {

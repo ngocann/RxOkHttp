@@ -1,6 +1,15 @@
 package xyz.blackice.rxokhttp;
 
+import android.util.Log;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
@@ -17,72 +26,57 @@ import okhttp3.Response;
 public class RxOkHttp {
 
     private OkHttpClient okHttpClient;
-    private String url;
-    private Class clazz;
-
 
     public RxOkHttp(RequestBuilder requestBuilder){
 
-        this.url = requestBuilder.getUrl();
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         if (requestBuilder.getTimeout() != 0){
             builder.connectTimeout(requestBuilder.getTimeout(), TimeUnit.SECONDS);
             builder.readTimeout(requestBuilder.getTimeout(), TimeUnit.SECONDS);
         }
-        if (requestBuilder.getClazz() != null){
-            this.clazz = requestBuilder.getClazz();
-        }
         okHttpClient = builder.build();
     }
 
-    public <T extends Class> Observable<T> get2(final String url, final T clazz){
-        return Observable.create(new ObservableOnSubscribe<T>() {
-            @Override
-            public void subscribe(ObservableEmitter<T> e) throws Exception {
-                try {
-                    Request request = new Request.Builder()
-                            .url(url)
-                            .build();
-                    Response response = okHttpClient.newCall(request).execute();
-                    String strResponse = response.body().string();
-                    response.body().close();
-
-                    e.onNext(strResponse);
-                    e.onComplete();
-
-                }catch (IOException exception){
-                    e.onError(exception);
-                }
-
-            }
-        });
-
-    }
     public Observable<String> get(final String url){
-        return Observable.create(new ObservableOnSubscribe<String>() {
-            @Override
-            public void subscribe(ObservableEmitter<String> e) throws Exception {
-
-                try {
-                    Request request = new Request.Builder()
-                            .url(url)
-                            .build();
-                    Response response = okHttpClient.newCall(request).execute();
-                    String strResponse = response.body().string();
-                    response.body().close();
-                    e.onNext(strResponse);
-                    e.onComplete();
-
-                }catch (IOException exception){
-                    e.onError(exception);
-                }
-
+        return Observable.create(e -> {
+            try {
+                Request request = new Request.Builder()
+                        .url(url)
+                        .build();
+                Response response = okHttpClient.newCall(request).execute();
+                String strResponse = response.body().string();
+                response.body().close();
+                e.onNext(strResponse);
+                e.onComplete();
+            }catch (IOException exception){
+                e.onError(exception);
             }
+
         });
     }
 
+    public <T> Observable<T> get(final String url, final Class<T> dataClass){
+        return get(url)
+                .flatMap( strResponse -> {
+                    Gson gson = new Gson();
+                    return Observable.just(gson.fromJson(strResponse, dataClass));
+                });
+    }
 
+    public <T> Observable<List<T>> getList(final String url, final Class<T[]> dataClass){
+        return get(url)
+                .flatMap( strResponse -> {
+                    Gson gson = new Gson();
+                    T[] arrayResult = gson.fromJson(strResponse, dataClass);
+                    return Observable.just(Arrays.asList(arrayResult));
+                });
+    }
 
+    //Download File
+
+    //Post Image
+
+    //Send File
 
 
 

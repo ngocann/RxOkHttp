@@ -1,1 +1,1 @@
-include ':sample', ':rxokhttp'
+include ':rxokhttp', ':app'
