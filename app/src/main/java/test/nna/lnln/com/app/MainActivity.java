@@ -8,6 +8,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import xyz.blackice.rxokhttp.RequestBuilder;
 import xyz.blackice.rxokhttp.RxOkHttp;
+import xyz.blackice.rxokhttp.helper.TargetUi;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "nna - MainActivity";
@@ -26,6 +27,12 @@ public class MainActivity extends AppCompatActivity {
                         , error -> error.printStackTrace());
 
         rxOkHttp.getList(urlList, SystemMessage[].class)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(fileConfig -> Log.d(TAG, "onCreate " + fileConfig)
+                        , error -> error.printStackTrace());
+
+        rxOkHttp.saveFile(new TargetUi(this), "/mnt/sdcard", urlList)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(fileConfig -> Log.d(TAG, "onCreate " + fileConfig)
