@@ -10,8 +10,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
+import io.reactivex.Single;
 import io.reactivex.functions.Function;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -39,12 +41,9 @@ public class RxOkHttp {
         okHttpClient = builder.build();
     }
 
-    public Observable<String> get(final String url) {
+    private Observable<String> get(Request request) {
         return Observable.create(e -> {
             try {
-                Request request = new Request.Builder()
-                        .url(url)
-                        .build();
                 Response response = okHttpClient.newCall(request).execute();
                 String strResponse = response.body().string();
                 response.body().close();
@@ -57,6 +56,33 @@ public class RxOkHttp {
         });
     }
 
+    private Observable<String> get(final String url) {
+        return Observable.create(e -> {
+            try {
+                Request request = new Request.Builder()
+                        .url(url)
+                        .build();
+
+                Response response = okHttpClient.newCall(request).execute();
+                String strResponse = response.body().string();
+                response.body().close();
+                e.onNext(strResponse);
+                e.onComplete();
+            } catch (IOException exception) {
+                e.onError(exception);
+            }
+
+        });
+    }
+
+    public <T> Observable<T> get(final Request request, final Class<T> dataClass) {
+        return get(request)
+                .flatMap(strResponse -> {
+                    Gson gson = new Gson();
+                    return Observable.just(gson.fromJson(strResponse, dataClass));
+                });
+    }
+
     public <T> Observable<T> get(final String url, final Class<T> dataClass) {
         return get(url)
                 .flatMap(strResponse -> {
@@ -67,6 +93,15 @@ public class RxOkHttp {
 
     public <T> Observable<List<T>> getList(final String url, final Class<T[]> dataClass) {
         return get(url)
+                .flatMap(strResponse -> {
+                    Gson gson = new Gson();
+                    T[] arrayResult = gson.fromJson(strResponse, dataClass);
+                    return Observable.just(Arrays.asList(arrayResult));
+                });
+    }
+
+    public <T> Observable<List<T>> getList(final Request request, final Class<T[]> dataClass) {
+        return get(request)
                 .flatMap(strResponse -> {
                     Gson gson = new Gson();
                     T[] arrayResult = gson.fromJson(strResponse, dataClass);
@@ -102,31 +137,20 @@ public class RxOkHttp {
                 });
     }
 
-    public Observable<R> saveFile(final TargetUi targetUi, String path, final List<String> urls) {
+    public Single<List<String>> saveFile(final TargetUi targetUi, String path, final List<String> urls) {
         GrantPermissions grantPermissions = new GrantPermissions(targetUi);
         return grantPermissions.with(permissions())
                 .react()
-                .flatMap(ignore -> {
-                    return Observable.fromIterable(urls)
-                            .flatMapIterable(new Function<String, Iterable<?>>() {
-                                @Override
-                                public Iterable<?> apply(String s) throws Exception {
-                                    File file = saveFile(path, s);
-                                    return Observable.just(file.getAbsolutePath());
-//                                    return null;
-                                }
-                            })
-//                            .flatMap(new Function<String, ObservableSource<String>>() {
-//                                @Override
-//                                public ObservableSource<String> apply(String url) throws Exception {
-//                                    File file = saveFile(path, url);
-//                                    return Observable.just(file.getAbsolutePath());
-//                                }
-//                            })
-                            .toList();
-                });
-
+                .flatMap(ignore -> Observable.fromIterable(urls)
+                        .flatMap(s -> {
+                            File file = saveFile(path, s);
+                            return Observable.just(file.getAbsolutePath());
+                        })
+                )
+                .toList()
+        ;
     }
+
     private String[] permissions() {
         return new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE
                 , Manifest.permission.READ_EXTERNAL_STORAGE};
