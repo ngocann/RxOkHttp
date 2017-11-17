@@ -1,2 +1,2 @@
 # RxOkHttp
-Lighweght library for okhttp 
+Lightweight library for okhttp 

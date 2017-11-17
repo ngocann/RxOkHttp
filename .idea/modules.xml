@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/RxOkHttp.iml" filepath="$PROJECT_DIR$/RxOkHttp.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sample/app.iml" filepath="$PROJECT_DIR$/sample/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/rxokhttp/rxokhttp.iml" filepath="$PROJECT_DIR$/rxokhttp/rxokhttp.iml" />
     </modules>
   </component>
