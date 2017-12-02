@@ -1,4 +1,4 @@
-package xyz.blackice.rxokhttp;
+package xyz.blackice.rxokhttp.model;
 
 /**
  * Created by DELL on 11/10/2017.
