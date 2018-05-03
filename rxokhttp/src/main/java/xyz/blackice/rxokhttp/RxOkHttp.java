@@ -35,6 +35,11 @@ public class RxOkHttp {
 
     private OkHttpClient okHttpClient;
 
+    public RxOkHttp() {
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        okHttpClient = builder.build();
+    }
+
     public RxOkHttp(RequestBuilder requestBuilder) {
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
@@ -45,13 +50,14 @@ public class RxOkHttp {
         okHttpClient = builder.build();
     }
 
-    private Observable<String> get(Request request) {
+
+    public Observable<String> get(Request request) {
         return Observable.create(e -> {
             try {
                 Response response = okHttpClient.newCall(request).execute();
                 String strResponse = response.body().string();
                 response.body().close();
-                e.onNext(strResponse);
+                e.onNext(new String(strResponse.getBytes("UTF-8")));
                 e.onComplete();
             } catch (IOException exception) {
                 e.onError(exception);
@@ -60,23 +66,11 @@ public class RxOkHttp {
         });
     }
 
-    private Observable<String> get(final String url) {
-        return Observable.create(e -> {
-            try {
-                Request request = new Request.Builder()
-                        .url(url)
-                        .build();
-
-                Response response = okHttpClient.newCall(request).execute();
-                String strResponse = response.body().string();
-                response.body().close();
-                e.onNext(strResponse);
-                e.onComplete();
-            } catch (IOException exception) {
-                e.onError(exception);
-            }
-
-        });
+    public Observable<String> get(final String url) {
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+        return get(request);
     }
 
     public <T> Observable<T> get(final Request request, final Class<T> dataClass) {
