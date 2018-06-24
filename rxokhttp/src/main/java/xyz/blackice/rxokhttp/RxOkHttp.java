@@ -35,6 +35,15 @@ public class RxOkHttp {
 
     private OkHttpClient okHttpClient;
 
+    private static RxOkHttp rxOkHttp = null;
+
+    public static RxOkHttp instance() {
+        if (rxOkHttp == null) {
+            rxOkHttp = new RxOkHttp();
+        }
+        return rxOkHttp;
+    }
+
     public RxOkHttp() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         okHttpClient = builder.build();
@@ -57,7 +66,8 @@ public class RxOkHttp {
                 Response response = okHttpClient.newCall(request).execute();
                 String strResponse = response.body().string();
                 response.body().close();
-                e.onNext(new String(strResponse.getBytes("UTF-8")));
+//                e.onNext(new String(strResponse.getBytes()));
+                e.onNext(strResponse);
                 e.onComplete();
             } catch (IOException exception) {
                 e.onError(exception);

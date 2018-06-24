@@ -3,7 +3,7 @@ apply plugin: 'com.android.library'
 ext {
     PUBLISH_GROUP_ID = 'xyz.blackice.rxokhttp'
     PUBLISH_ARTIFACT_ID = 'rxokhttp'
-    PUBLISH_VERSION = '0.6'
+    PUBLISH_VERSION = '0.7.1'
 }
 
 android {
@@ -14,8 +14,8 @@ android {
     defaultConfig {
         minSdkVersion 17
         targetSdkVersion 26
-        versionCode 6
-        versionName "0.6"
+        versionCode 8
+        versionName "0.8"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
